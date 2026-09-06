@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+.env
+
+# Build output
+client/dist/
+
+# Database files
+server/cloudmed_db.json
+server/cloudmed.db
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
