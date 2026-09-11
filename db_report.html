@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BACSE344 - Comprehensive Database Design & Advanced SQL Report</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
+    @page {
+      size: A4;
+      margin: 18mm 14mm 18mm 14mm;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      color: #1e293b;
+      line-height: 1.55;
+      font-size: 12px;
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+    }
+
+    .header-card {
+      background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #4338ca 100%);
+      color: #ffffff;
+      padding: 24px 28px;
+      border-radius: 12px;
+      margin-bottom: 22px;
+      box-shadow: 0 4px 14px rgba(67, 56, 202, 0.2);
+    }
+
+    .header-card h1 {
+      margin: 0 0 6px 0;
+      font-size: 22px;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+    }
+
+    .header-card h2 {
+      margin: 0 0 16px 0;
+      font-size: 14px;
+      font-weight: 500;
+      opacity: 0.92;
+      color: #c7d2fe;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 16px;
+      font-size: 11.5px;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 12px 16px;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .meta-item strong {
+      color: #a5b4fc;
+    }
+
+    h2.section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 2px solid #4338ca;
+      padding-bottom: 6px;
+      margin-top: 24px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h3.sub-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: #3730a3;
+      margin-top: 16px;
+      margin-bottom: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px 0;
+      font-size: 11px;
+    }
+
+    th {
+      background: #f1f5f9;
+      color: #1e293b;
+      font-weight: 600;
+      text-align: left;
+      padding: 7px 10px;
+      border: 1px solid #cbd5e1;
+    }
+
+    td {
+      padding: 6px 10px;
+      border: 1px solid #e2e8f0;
+      color: #334155;
+    }
+
+    tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    pre, code {
+      font-family: 'JetBrains Mono', Consolas, Monaco, monospace;
+    }
+
+    pre {
+      background: #0f172a;
+      color: #e2e8f0;
+      padding: 10px 12px;
+      border-radius: 7px;
+      font-size: 10px;
+      line-height: 1.45;
+      overflow-x: auto;
+      margin: 8px 0 12px 0;
+      border: 1px solid #1e293b;
+    }
+
+    code:not(pre code) {
+      background: #e0e7ff;
+      color: #3730a3;
+      padding: 1px 4px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 9px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .badge-pk { background: #dbeafe; color: #1e40af; }
+    .badge-fk { background: #fef3c7; color: #92400e; }
+    .badge-chk { background: #dcfce7; color: #166534; }
+
+    .page-break {
+      page-break-before: always;
+    }
+
+    .no-break {
+      page-break-inside: avoid;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header-card">
+    <h1>BACSE344 - Cloud Infrastructure & Architecture</h1>
+    <h2>Comprehensive Database Engineering & Advanced SQL Report</h2>
+    <div class="meta-grid">
+      <div class="meta-item"><strong>Course:</strong> BACSE344 - Cloud Infrastructure & Architecture</div>
+      <div class="meta-item"><strong>Faculty:</strong> Dr. P. Anandan</div>
+      <div class="meta-item"><strong>Slot:</strong> C1 Slot</div>
+      <div class="meta-item"><strong>Project Title:</strong> CloudMed Healthcare Relational Database System</div>
+    </div>
+  </div>
+
+  <!-- SECTION 1 & 2 -->
+  <h2 class="section-title">1. Database Creation, Tables & Integrity Constraints</h2>
+  <p>The schema establishes strict relational integrity across 5 core entities: <code>departments</code>, <code>doctors</code>, <code>patients</code>, <code>appointments</code>, and <code>audit_logs</code>.</p>
+
+  <div class="no-break">
+    <h3 class="sub-title">1.1 Database DDL Definition</h3>
+    <pre><code>CREATE DATABASE cloudmed_db WITH ENCODING = 'UTF8';
+\c cloudmed_db;
+
+-- 1. Departments
+CREATE TABLE departments (
+    dept_id SERIAL PRIMARY KEY,
+    dept_name VARCHAR(100) NOT NULL UNIQUE,
+    head_physician VARCHAR(100),
+    building_block VARCHAR(20) NOT NULL,
+    emergency_contact VARCHAR(20) NOT NULL
+);
+
+-- 2. Doctors
+CREATE TABLE doctors (
+    doctor_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    specialty VARCHAR(100) NOT NULL,
+    email VARCHAR(120) NOT NULL UNIQUE,
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    dept_id INT NOT NULL REFERENCES departments(dept_id) ON DELETE RESTRICT ON UPDATE CASCADE,
+    consultation_fee NUMERIC(10, 2) NOT NULL DEFAULT 500.00 CHECK (consultation_fee >= 0),
+    available_days VARCHAR(100) NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE
+);
+
+-- 3. Patients
+CREATE TABLE patients (
+    patient_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    age INT NOT NULL CHECK (age BETWEEN 0 AND 125),
+    gender VARCHAR(15) NOT NULL CHECK (gender IN ('Male', 'Female', 'Other')),
+    blood_group VARCHAR(5) NOT NULL CHECK (blood_group IN ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-')),
+    phone VARCHAR(20) NOT NULL UNIQUE,
+    email VARCHAR(120) NOT NULL UNIQUE,
+    address TEXT NOT NULL,
+    medical_history TEXT
+);
+
+-- 4. Appointments
+CREATE TABLE appointments (
+    appointment_id SERIAL PRIMARY KEY,
+    patient_id INT NOT NULL REFERENCES patients(patient_id) ON DELETE CASCADE,
+    doctor_id INT NOT NULL REFERENCES doctors(doctor_id) ON DELETE RESTRICT,
+    appointment_date DATE NOT NULL,
+    appointment_time VARCHAR(20) NOT NULL,
+    reason VARCHAR(255) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'Scheduled' CHECK (status IN ('Scheduled', 'In-Progress', 'Completed', 'Cancelled')),
+    notes TEXT,
+    billing_amount NUMERIC(10, 2) NOT NULL DEFAULT 0.00 CHECK (billing_amount >= 0),
+    is_paid BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+-- 5. Audit Logs
+CREATE TABLE audit_logs (
+    log_id SERIAL PRIMARY KEY,
+    entity_name VARCHAR(50) NOT NULL,
+    operation_type VARCHAR(20) NOT NULL,
+    entity_id INT NOT NULL,
+    old_data JSONB,
+    new_data JSONB,
+    performed_by VARCHAR(50) DEFAULT CURRENT_USER,
+    timestamp TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);</code></pre>
+  </div>
+
+  <!-- SECTION 3 & 4 -->
+  <div class="page-break"></div>
+  <h2 class="section-title">2. Real-World Datasets & Master Insertion</h2>
+  <pre><code>-- Departments & Doctors Seeding
+INSERT INTO departments (dept_name, head_physician, building_block, emergency_contact) VALUES
+('Cardiology', 'Dr. Sarah Jenkins', 'Block A - 3rd Floor', '+1-555-0101'),
+('Neurology', 'Dr. Rajesh Patel', 'Block B - 2nd Floor', '+1-555-0102'),
+('Pediatrics', 'Dr. Elena Rostova', 'Block C - 1st Floor', '+1-555-0103');
+
+INSERT INTO doctors (name, specialty, email, phone, dept_id, consultation_fee, available_days) VALUES
+('Dr. Sarah Jenkins', 'Interventional Cardiology', 'sarah.jenkins@cloudmed.io', '+1-555-0201', 1, 850.00, 'Mon, Wed, Fri'),
+('Dr. Rajesh Patel', 'Clinical Neurology', 'rajesh.patel@cloudmed.io', '+1-555-0202', 2, 900.00, 'Tue, Thu, Sat'),
+('Dr. Elena Rostova', 'Pediatric Medicine', 'elena.rostova@cloudmed.io', '+1-555-0203', 3, 600.00, 'Mon, Tue, Thu');
+
+-- Patients & Appointments Seeding
+INSERT INTO patients (name, age, gender, blood_group, phone, email, address, medical_history) VALUES
+('Alice Johnson', 34, 'Female', 'O+', '+1-555-0301', 'alice.johnson@example.com', '742 Evergreen Terrace', 'Mild hypertension'),
+('Robert Martinez', 52, 'Male', 'A+', '+1-555-0302', 'robert.martinez@example.com', '124 Conch Street', 'Type 2 diabetes');
+
+INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_time, reason, status, billing_amount, is_paid) VALUES
+(1, 1, '2026-09-15', '09:30 AM', 'Annual Cardiac Checkup', 'Completed', 850.00, TRUE),
+(2, 2, '2026-09-16', '02:00 PM', 'Chronic Migraine Assessment', 'Scheduled', 900.00, FALSE);</code></pre>
+
+  <!-- SECTION 5 & 6 -->
+  <h2 class="section-title">3. Relational Joins & Subqueries</h2>
+  <div class="no-break">
+    <h3 class="sub-title">3.1 Multi-Table INNER JOIN</h3>
+    <pre><code>SELECT a.appointment_id, p.name AS patient_name, d.name AS doctor_name, dept.dept_name, a.appointment_date, a.status
+FROM appointments a
+INNER JOIN patients p ON a.patient_id = p.patient_id
+INNER JOIN doctors d ON a.doctor_id = d.doctor_id
+INNER JOIN departments dept ON d.dept_id = dept.dept_id;</code></pre>
+  </div>
+
+  <div class="no-break">
+    <h3 class="sub-title">3.2 Correlated Subquery</h3>
+    <pre><code>SELECT p.name, a.appointment_date, a.reason
+FROM patients p
+JOIN appointments a ON p.patient_id = a.patient_id
+WHERE a.appointment_date = (
+    SELECT MAX(sub.appointment_date) FROM appointments sub WHERE sub.patient_id = p.patient_id
+);</code></pre>
+  </div>
+
+  <!-- SECTION 7 & 8 -->
+  <div class="page-break"></div>
+  <h2 class="section-title">4. Views, Stored Procedures & Functions</h2>
+  
+  <div class="no-break">
+    <h3 class="sub-title">4.1 Operational View (<code>vw_active_appointments</code>)</h3>
+    <pre><code>CREATE OR REPLACE VIEW vw_active_appointments AS
+SELECT a.appointment_id, p.name AS patient_name, d.name AS doctor_name, a.appointment_date, a.appointment_time, a.status, a.billing_amount
+FROM appointments a
+JOIN patients p ON a.patient_id = p.patient_id
+JOIN doctors d ON a.doctor_id = d.doctor_id
+WHERE a.status IN ('Scheduled', 'In-Progress');</code></pre>
+  </div>
+
+  <div class="no-break">
+    <h3 class="sub-title">4.2 Stored Procedure (<code>sp_book_appointment</code>)</h3>
+    <pre><code>CREATE OR REPLACE PROCEDURE sp_book_appointment(
+    IN p_patient_id INT,
+    IN p_doctor_id INT,
+    IN p_date DATE,
+    IN p_time VARCHAR(20),
+    IN p_reason VARCHAR(255),
+    OUT p_apt_id INT,
+    OUT p_msg VARCHAR(255)
+)
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_fee NUMERIC(10, 2);
+BEGIN
+    SELECT consultation_fee INTO v_fee FROM doctors WHERE doctor_id = p_doctor_id AND is_active = TRUE;
+    IF NOT FOUND THEN
+        p_msg := 'Error: Inactive or Invalid Doctor';
+        RETURN;
+    END IF;
+
+    INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_time, reason, status, billing_amount)
+    VALUES (p_patient_id, p_doctor_id, p_date, p_time, p_reason, 'Scheduled', v_fee)
+    RETURNING appointment_id INTO p_apt_id;
+
+    p_msg := 'Success: Booked appointment #' || p_apt_id;
+END;
+$$;</code></pre>
+  </div>
+
+  <div class="no-break">
+    <h3 class="sub-title">4.3 User-Defined Function (<code>fn_get_patient_risk_category</code>)</h3>
+    <pre><code>CREATE OR REPLACE FUNCTION fn_get_patient_risk_category(p_patient_id INT)
+RETURNS VARCHAR(30) LANGUAGE plpgsql AS $$
+DECLARE
+    v_age INT;
+    v_hist TEXT;
+BEGIN
+    SELECT age, COALESCE(medical_history, '') INTO v_age, v_hist FROM patients WHERE patient_id = p_patient_id;
+    IF v_age >= 60 OR v_hist ILIKE '%cardiac%' THEN RETURN 'High Risk';
+    ELSIF v_age >= 40 OR v_hist ILIKE '%hypertension%' THEN RETURN 'Moderate Risk';
+    ELSE RETURN 'Low Risk';
+    END IF;
+END;
+$$;</code></pre>
+  </div>
+
+  <!-- SECTION 9 & 10 -->
+  <div class="page-break"></div>
+  <h2 class="section-title">5. Triggers, Cursors & ACID Transactions</h2>
+
+  <div class="no-break">
+    <h3 class="sub-title">5.1 Audit Trigger</h3>
+    <pre><code>CREATE OR REPLACE FUNCTION trg_fn_audit_appointments()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    IF (TG_OP = 'INSERT') THEN
+        INSERT INTO audit_logs (entity_name, operation_type, entity_id, new_data) VALUES ('appointments', 'INSERT', NEW.appointment_id, to_jsonb(NEW));
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO audit_logs (entity_name, operation_type, entity_id, old_data, new_data) VALUES ('appointments', 'UPDATE', NEW.appointment_id, to_jsonb(OLD), to_jsonb(NEW));
+    ELSIF (TG_OP = 'DELETE') THEN
+        INSERT INTO audit_logs (entity_name, operation_type, entity_id, old_data) VALUES ('appointments', 'DELETE', OLD.appointment_id, to_jsonb(OLD));
+    END IF;
+    RETURN NULL;
+END;
+$$;
+
+CREATE TRIGGER trg_appointments_audit
+AFTER INSERT OR UPDATE OR DELETE ON appointments
+FOR EACH ROW EXECUTE FUNCTION trg_fn_audit_appointments();</code></pre>
+  </div>
+
+  <div class="no-break">
+    <h3 class="sub-title">5.2 Cursor Processing</h3>
+    <pre><code>CREATE OR REPLACE PROCEDURE sp_process_monthly_billing_batch(p_rate NUMERIC(4,2))
+LANGUAGE plpgsql AS $$
+DECLARE
+    cur_unpaid CURSOR FOR SELECT appointment_id, billing_amount FROM appointments WHERE status = 'Completed' AND is_paid = FALSE;
+    v_rec RECORD;
+BEGIN
+    OPEN cur_unpaid;
+    LOOP
+        FETCH cur_unpaid INTO v_rec;
+        EXIT WHEN NOT FOUND;
+        UPDATE appointments SET billing_amount = v_rec.billing_amount * (1.0 - p_rate) WHERE appointment_id = v_rec.appointment_id;
+    END LOOP;
+    CLOSE cur_unpaid;
+END;
+$$;</code></pre>
+  </div>
+
+  <div class="no-break">
+    <h3 class="sub-title">5.3 ACID Transaction with Savepoint</h3>
+    <pre><code>BEGIN;
+INSERT INTO patients (name, age, gender, blood_group, phone, email, address)
+VALUES ('Mark Sterling', 40, 'Male', 'O+', '+1-555-0888', 'mark.sterling@cloudmed.io', '22 Silicon Way');
+SAVEPOINT patient_created;
+
+INSERT INTO appointments (patient_id, doctor_id, appointment_date, appointment_time, reason, status, billing_amount, is_paid)
+VALUES (currval('patients_patient_id_seq'), 1, '2026-09-22', '11:00 AM', 'Specialist Consultation', 'Scheduled', 850.00, TRUE);
+
+COMMIT;</code></pre>
+  </div>
+
+</body>
+</html>
