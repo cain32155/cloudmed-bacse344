@@ -74,19 +74,40 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// CREATE: Book new appointment
+// CREATE: Book new appointment (supports existing patient_id OR custom new patient name)
 router.post('/', (req, res) => {
-  const { patient_id, doctor_id, appointment_date, appointment_time, reason, notes } = req.body;
+  let { patient_id, patient_name, patient_age, patient_phone, patient_blood_group, doctor_id, appointment_date, appointment_time, reason, notes } = req.body;
 
-  if (!patient_id || !doctor_id || !appointment_date || !appointment_time || !reason) {
-    return res.status(400).json({ success: false, message: 'Missing required appointment fields' });
+  if ((!patient_id && !patient_name) || !doctor_id || !appointment_date || !appointment_time || !reason) {
+    return res.status(400).json({ success: false, message: 'Missing required appointment fields (patient, doctor, date, time, reason)' });
   }
 
   try {
-    // Validate patient existence
-    const patientExists = db.prepare('SELECT id FROM patients WHERE id = ?').get(patient_id);
-    if (!patientExists) {
-      return res.status(404).json({ success: false, message: 'Invalid patient_id. Patient not found.' });
+    // If a custom patient name is provided instead of / in addition to patient_id
+    if (!patient_id || patient_id === 'new') {
+      if (!patient_name || !patient_name.trim()) {
+        return res.status(400).json({ success: false, message: 'Please provide a valid patient name.' });
+      }
+
+      const pName = patient_name.trim();
+      const slug = pName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'patient';
+      const pEmail = `${slug}.${Date.now()}@cloudmed.io`;
+      const pPhone = patient_phone || `+1-555-${Math.floor(1000 + Math.random() * 9000)}`;
+      const pAge = patient_age ? Number(patient_age) : 28;
+      const pBlood = patient_blood_group || 'O+';
+
+      const insertPatientStmt = db.prepare(`
+        INSERT INTO patients (name, age, gender, blood_group, phone, email, address, medical_history)
+        VALUES (?, ?, 'Other', ?, ?, ?, 'General Registration', 'Added during appointment booking')
+      `);
+      const patientInfo = insertPatientStmt.run(pName, pAge, pBlood, pPhone, pEmail);
+      patient_id = patientInfo.lastInsertRowid;
+    } else {
+      // Validate existing patient existence
+      const patientExists = db.prepare('SELECT id FROM patients WHERE id = ?').get(patient_id);
+      if (!patientExists) {
+        return res.status(404).json({ success: false, message: 'Invalid patient_id. Patient not found.' });
+      }
     }
 
     // Validate doctor existence

@@ -47,26 +47,40 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// CREATE: Add new patient record
+// CREATE: Add new patient record (any custom name supported)
 router.post('/', (req, res) => {
   const { name, age, gender, blood_group, phone, email, address, medical_history } = req.body;
 
-  if (!name || !age || !gender || !blood_group || !phone || !email) {
-    return res.status(400).json({ success: false, message: 'Missing required patient fields' });
+  if (!name || !name.trim()) {
+    return res.status(400).json({ success: false, message: 'Patient full name is required' });
   }
 
+  const patientName = name.trim();
+  const sanitizedSlug = patientName.toLowerCase().replace(/[^a-z0-9]/g, '') || 'patient';
+  const finalEmail = (email && email.trim()) ? email.trim() : `${sanitizedSlug}.${Date.now()}@cloudmed.io`;
+  const finalPhone = (phone && phone.trim()) ? phone.trim() : `+1-555-${Math.floor(1000 + Math.random() * 9000)}`;
+  const finalAge = (age && Number(age) > 0) ? Number(age) : 28;
+  const finalGender = gender || 'Male';
+  const finalBloodGroup = blood_group || 'O+';
+  const finalAddress = address || 'General Ward, Clinic';
+  const finalHistory = medical_history || 'Routine checkup profile registered';
+
   try {
+    // Check if email conflict, if so generate a timestamped variant
+    let insertEmail = finalEmail;
+    const existing = db.prepare('SELECT id FROM patients WHERE email = ?').get(insertEmail);
+    if (existing) {
+      insertEmail = `${sanitizedSlug}.${Date.now()}@cloudmed.io`;
+    }
+
     const stmt = db.prepare(`
       INSERT INTO patients (name, age, gender, blood_group, phone, email, address, medical_history)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    const info = stmt.run(name, Number(age), gender, blood_group, phone, email, address || '', medical_history || '');
+    const info = stmt.run(patientName, finalAge, finalGender, finalBloodGroup, finalPhone, insertEmail, finalAddress, finalHistory);
     const newPatient = db.prepare('SELECT * FROM patients WHERE id = ?').get(info.lastInsertRowid);
-    res.status(201).json({ success: true, message: 'Patient created successfully', data: newPatient });
+    res.status(201).json({ success: true, message: `Patient '${patientName}' registered successfully`, data: newPatient });
   } catch (error) {
-    if (error.message.includes('UNIQUE constraint failed')) {
-      return res.status(409).json({ success: false, message: 'Patient with this email already exists' });
-    }
     res.status(500).json({ success: false, error: error.message });
   }
 });
@@ -117,8 +131,10 @@ router.delete('/:id', (req, res) => {
       return res.status(404).json({ success: false, message: 'Patient not found' });
     }
 
+    db.prepare('DELETE FROM appointments WHERE patient_id = ?').run(id);
     db.prepare('DELETE FROM patients WHERE id = ?').run(id);
-    res.json({ success: true, message: `Patient #${id} deleted successfully` });
+
+    res.json({ success: true, message: `Patient #${id} and associated appointments deleted successfully` });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
   }
